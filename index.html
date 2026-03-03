@@ -70,8 +70,8 @@ html:fullscreen {
 [data-icon="play"]:before { content: "▶"; }
 [data-icon="pause"]:before { content: "⏸"; }
 [data-icon="next"]:before { content: "▶▶"; }
-[data-icon="settings"]:before { content: "🛠️"; }
-[data-icon="folder"]:before { content: "📁"; }
+[data-icon="settings"]:before { content: "⚙"; }
+[data-icon="folder"]:before { content: "🪷"; }
 [data-icon="music"]:before { content: "🔇"; }
 [data-icon="volume-up"]:before { content: "🔊"; }
 [data-icon="volume-mute"]:before { content: "🔇"; }
@@ -1364,19 +1364,19 @@ html:fullscreen {
 
   <!-- LOGO CORNERS (Tidak Bergantian) -->
   <div class="logo-corner left" id="logoLeft" style="opacity: 1;">
-    <div class="logo-placeholder" id="logoLeftPlaceholder"></div>
+    <div class="logo-placeholder" id="logoLeftPlaceholder">⚔️</div>
     <img id="logoLeftImg" src="" alt="Logo Kiri" style="display: none;">
   </div>
   
   <div class="logo-corner right" id="logoRight" style="opacity: 1;">
-    <div class="logo-placeholder" id="logoRightPlaceholder"></div>
+    <div class="logo-placeholder" id="logoRightPlaceholder">⚔️</div>
     <img id="logoRightImg" src="" alt="Logo Kanan" style="display: none;">
   </div>
   
   <div id="slidesContainer">
     <div class="empty-state" id="emptyState">
       <span data-icon="folder"></span>
-      <h2>Koramil 1609-05/Sukasada</h2>
+      <h2>Slide Koramil 1609-05/Sukasada</h2>
       <p>Silakan pilih folder atau masukkan ID Folder Google Drive</p>
     </div>
   </div>
@@ -1387,7 +1387,7 @@ html:fullscreen {
 
   <!-- JUDUL SLIDE -->
   <div class="slide-title" id="slideTitle">
-    <div class="title-text">Koramil 1609-05/Sukasada</div>
+    <div class="title-text">Slide Koramil 1609-05/Sukasada</div>
   </div>
 
   <!-- DATETIME -->
@@ -1445,29 +1445,22 @@ html:fullscreen {
     <h3><span data-icon="settings"></span> PENGATURAN OFFLINE</h3>
     
     <div class="settings-section">
-      <h4>📁 GOOGLE DRIVE (AUTO UPDATE)</h4>
+      <h4>📁 GOOGLE DRIVE (AUTO LOAD)</h4>
       <div class="setting-item">
-        <span class="setting-label">URL Apps Script</span>
-        <input type="text" class="folder-id-input" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <span class="setting-label">ID Folder Google Drive</span>
+        <input type="text" class="folder-id-input" id="googleDriveFolderId" value="1I5wVeLcrSS2sjlaRLCftwd9JPfbNri0l" placeholder="ID Folder">
         <small style="color: var(--gold-light); display: block; margin-top: 5px;">
-          URL dari hasil deploy Google Apps Script
+          ID folder sudah diisi otomatis
         </small>
       </div>
       <div class="setting-item">
-        <span class="setting-label">ID Folder Google Drive</span>
-        <input type="text" class="folder-id-input" id="googleDriveFolderId" placeholder="Contoh: 1a2B3c4D5e6F7g8H9i0J">
+        <span class="setting-label">URL Apps Script</span>
+        <input type="text" class="folder-id-input" id="appsScriptUrl" value="https://script.google.com/macros/s/AKfycbySXxNK0xSKz7u3WNmVvj_yBiPhkW3U0a5jXRWAPp9DNEGHTfSw0iau1P64kJeoDTHM/exec" placeholder="URL Apps Script">
         <small style="color: var(--gold-light); display: block; margin-top: 5px;">
-          Cara dapat ID: Buka folder di Google Drive, lihat URL (id setelah /folders/)
+          URL sudah diisi otomatis
         </small>
       </div>
       <button class="settings-btn-small" id="loadDriveBtn" style="width:100%;">📥 Load dari Google Drive</button>
-      <div class="setting-item" style="margin-top: 10px;">
-        <span class="setting-label">Auto Update</span>
-        <div class="toggle-switch active" id="autoUpdateToggle"></div>
-        <small style="color: var(--gold-light); display: block; margin-top: 5px;">
-          Otomatis reload jika ada file baru (cek setiap 30 detik)
-        </small>
-      </div>
     </div>
     
     <div class="settings-section">
@@ -1763,6 +1756,12 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
 (function() {
   'use strict';
   
+  // ===== KONFIGURASI GOOGLE DRIVE (LANGSUNG DIISI) =====
+  const CONFIG = {
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbySXxNK0xSKz7u3WNmVvj_yBiPhkW3U0a5jXRWAPp9DNEGHTfSw0iau1P64kJeoDTHM/exec',
+    GOOGLE_DRIVE_FOLDER_ID: '1I5wVeLcrSS2sjlaRLCftwd9JPfbNri0l'
+  };
+  
   // ===== PWA INSTALL =====
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
@@ -2057,8 +2056,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   let logoRightData = null;
   let logoScale = 200;
 
-  // Auto Update variables
-  let autoUpdateEnabled = true;
+  // Auto Update
   let autoUpdateInterval = null;
   let lastFileVersion = '';
 
@@ -2091,10 +2089,9 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   const fontPreview = document.getElementById('fontPreview');
   const hfsIpInput = document.getElementById('hfsIpInput');
   const hfsPortInput = document.getElementById('hfsPortInput');
-  const appsScriptUrlInput = document.getElementById('appsScriptUrl');
   const googleDriveFolderId = document.getElementById('googleDriveFolderId');
+  const appsScriptUrl = document.getElementById('appsScriptUrl');
   const loadDriveBtn = document.getElementById('loadDriveBtn');
-  const autoUpdateToggle = document.getElementById('autoUpdateToggle');
   
   const logoLeft = document.getElementById('logoLeft');
   const logoRight = document.getElementById('logoRight');
@@ -2190,84 +2187,54 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     const img = slideElement.querySelector('.main');
     if (!img) return;
     
-    // Hapus semua class animasi yang ada
     allAnimations.forEach(animClass => {
       img.classList.remove(animClass);
     });
     
-    // Terapkan animasi baru
     const animClass = getNextAnimation();
     img.classList.add(animClass);
     
-    // Set durasi animasi
     img.style.animationDuration = animationDuration + 's';
     img.style.animationIterationCount = '1';
     img.style.animationFillMode = 'forwards';
-    
-    console.log('Animasi PowerPoint 2007 diterapkan:', animClass, 'durasi:', animationDuration + 's');
   }
 
   // ===== FUNGSI AUTO UPDATE =====
   function startAutoUpdate() {
     if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-    if (!autoUpdateEnabled) return;
     
     autoUpdateInterval = setInterval(async () => {
-      const appsScriptUrl = appsScriptUrlInput?.value.trim();
-      const folderId = googleDriveFolderId?.value.trim();
-      
-      if (!appsScriptUrl || !folderId || slides.length === 0) return;
-      
       try {
-        const response = await fetch(`${appsScriptUrl}?folderId=${encodeURIComponent(folderId)}&checkVersion=true`);
+        const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?folderId=${CONFIG.GOOGLE_DRIVE_FOLDER_ID}`);
         const data = await response.json();
         
-        // Buat versi string dari file IDs
         const currentVersion = data.files ? data.files.map(f => f.id).join(',') : '';
         
         if (lastFileVersion && lastFileVersion !== currentVersion) {
           console.log('🔄 File updated, reloading slides...');
-          // Reload ulang slides
-          loadFromGoogleDrive(true); // true = silent reload
-        }
-        
-        if (!lastFileVersion && data.files) {
-          lastFileVersion = data.files.map(f => f.id).join(',');
+          location.reload();
         }
       } catch (e) {
         console.log('Auto update check failed:', e);
       }
-    }, 30000); // Cek setiap 30 detik
+    }, 30000);
   }
 
   // ===== FUNGSI LOAD DARI GOOGLE DRIVE =====
   async function loadFromGoogleDrive(silent = false) {
-    const appsScriptUrl = appsScriptUrlInput.value.trim();
-    const folderId = googleDriveFolderId.value.trim();
-    
-    if (!appsScriptUrl) {
-      alert('Masukkan URL Google Apps Script terlebih dahulu!');
-      return;
-    }
-    
-    if (!folderId) {
-      alert('Masukkan ID Folder Google Drive terlebih dahulu!');
-      return;
-    }
-
     emptyState?.classList.add('hide');
     if (!silent) {
       container.innerHTML = "";
       loadingIndicator.classList.add("show");
     }
     folderInfo.classList.remove('hide');
-    folderInfoText.innerHTML = `📁 Menghubungi Apps Script...`;
+    folderInfoText.innerHTML = `📁 Menghubungi Google Drive...`;
 
     try {
-      const response = await fetch(`${appsScriptUrl}?folderId=${encodeURIComponent(folderId)}`);
+      const response = await fetch(`${CONFIG.APPS_SCRIPT_URL}?folderId=${CONFIG.GOOGLE_DRIVE_FOLDER_ID}`);
       
       if (!response.ok) {
-        throw new Error(`Gagal mengakses Apps Script (${response.status})`);
+        throw new Error(`Gagal mengakses (${response.status})`);
       }
 
       const data = await response.json();
@@ -2277,18 +2244,16 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       }
       
       if (!data.files || data.files.length === 0) {
-        folderInfoText.innerHTML = '📁 Tidak ada file gambar/video di folder ini';
+        folderInfoText.innerHTML = '📁 Tidak ada file gambar/video';
         loadingIndicator.classList.remove("show");
         return;
       }
 
-      folderInfoText.innerHTML = `📁 Google Drive: ${data.files.length} file ditemukan (${data.images || 0} gambar, ${data.videos || 0} video)`;
+      folderInfoText.innerHTML = `📁 Google Drive: ${data.files.length} file ditemukan`;
 
-      // Simpan versi file untuk auto update
       lastFileVersion = data.files.map(f => f.id).join(',');
 
       if (!silent) {
-        // Load setiap file media
         for (let i = 0; i < data.files.length; i++) {
           const file = data.files[i];
           const slide = document.createElement('div');
@@ -2297,9 +2262,8 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
           if (file.mimeType.startsWith('image/')) {
             const img = document.createElement('img');
             img.className = 'main';
-            img.src = `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`; // Hemat kuota dengan thumbnail
+            img.src = `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`;
             img.onerror = () => {
-              console.log('Gagal load:', file.name);
               img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23333"/><text x="20" y="110" fill="%23C5A059">Error</text></svg>';
             };
             slide.appendChild(img);
@@ -2308,14 +2272,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
             video.className = 'main';
             video.src = `https://drive.google.com/uc?export=download&id=${file.id}`;
             video.controls = false;
-            video.onerror = () => console.log('Gagal load video:', file.name);
             slide.appendChild(video);
-          } else {
-            continue;
           }
           
           container.appendChild(slide);
-          
           await new Promise(r => setTimeout(r, 50));
         }
 
@@ -2331,49 +2291,21 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
           const firstVideo = slides[0].querySelector('video');
           if (firstVideo) firstVideo.play();
         }
-      }
 
-      // Mulai auto update
-      startAutoUpdate();
+        startAutoUpdate();
+      }
 
     } catch (error) {
       console.error('Google Drive error:', error);
       if (!silent) {
         folderInfoText.innerHTML = `📁 Error: ${error.message}`;
         loadingIndicator.classList.remove("show");
-        
-        emptyState.classList.remove('hide');
-        emptyState.innerHTML = `
-          <span data-icon="folder"></span>
-          <h2>GAGAL MEMUAT GOOGLE DRIVE</h2>
-          <p>${error.message}</p>
-          <p style="margin-top: 20px;">Folder ID: ${folderId}</p>
-          <p style="font-size:12px; color: var(--gold-light);">Pastikan:</p>
-          <p style="font-size:12px;">1. URL Apps Script benar</p>
-          <p style="font-size:12px;">2. Folder ID benar</p>
-          <p style="font-size:12px;">3. Folder di-set "Anyone with link"</p>
-          <button onclick="location.reload()" class="settings-btn-small" style="margin-top:20px;">Muat Ulang</button>
-        `;
       }
     }
   }
 
   if (loadDriveBtn) {
     loadDriveBtn.addEventListener('click', () => loadFromGoogleDrive(false));
-  }
-
-  // Auto Update Toggle
-  if (autoUpdateToggle) {
-    autoUpdateToggle.classList.add('active');
-    autoUpdateToggle.addEventListener('click', function() {
-      autoUpdateEnabled = !autoUpdateEnabled;
-      this.classList.toggle('active', autoUpdateEnabled);
-      if (autoUpdateEnabled) {
-        startAutoUpdate();
-      } else {
-        if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-      }
-    });
   }
 
   // ===== FUNGSI HFS =====
@@ -2421,7 +2353,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
           img.className = 'main';
           img.src = fileUrl;
           img.onerror = () => {
-            console.log('Gagal load:', item.name);
             img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23333"/><text x="20" y="110" fill="%23C5A059">Error</text></svg>';
           };
           slide.appendChild(img);
@@ -2430,7 +2361,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
           video.className = 'main';
           video.src = fileUrl;
           video.controls = false;
-          video.onerror = () => console.log('Gagal load video:', item.name);
           slide.appendChild(video);
         }
         
@@ -2451,19 +2381,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       console.error('HFS error:', error);
       folderInfoText.innerHTML = `🌐 Error: ${error.message}`;
       loadingIndicator.classList.remove("show");
-      
-      emptyState.classList.remove('hide');
-      emptyState.innerHTML = `
-        <span data-icon="hfs">🌐</span>
-        <h2>GAGAL TERHUBUNG KE HFS</h2>
-        <p>${error.message}</p>
-        <p style="margin-top: 20px;">IP: ${hfsIp}:${hfsPort}</p>
-        <p style="font-size:12px; color: var(--gold-light);">Pastikan:</p>
-        <p style="font-size:12px;">1. HFS berjalan di laptop</p>
-        <p style="font-size:12px;">2. IP address sudah benar</p>
-        <p style="font-size:12px;">3. Firewall mengizinkan koneksi</p>
-        <button onclick="loadFromHFS()" class="settings-btn-small" style="margin-top:20px;">Coba Lagi</button>
-      `;
     }
   };
 
@@ -2488,7 +2405,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       }
     } catch (error) {
       folderInfoText.innerHTML = `🌐 ❌ Gagal: ${error.message}`;
-      alert(`❌ Gagal terhubung ke HFS!\nPastikan:\n1. HFS berjalan\n2. IP: ${hfsIp}:${hfsPort} benar\n3. Firewall tidak memblokir`);
+      alert(`❌ Gagal terhubung ke HFS!`);
     }
   });
 
@@ -2514,7 +2431,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
            fileName.endsWith('.ico') || isValidImageForSlideshow(file);
   }
 
-  // ===== FUNGSI LOGO (Tidak Bergantian) =====
+  // ===== FUNGSI LOGO =====
   function updateLogo(position, dataUrl) {
     const img = position === 'left' ? logoLeftImg : logoRightImg;
     const placeholder = position === 'left' ? logoLeftPlaceholder : logoRightPlaceholder;
@@ -2745,7 +2662,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     currentSlide = currentMediaIndex;
     if (slides[currentSlide]) {
       slides[currentSlide].classList.add("active");
-      
       applyAnimationToSlide(slides[currentSlide]);
       
       const video = slides[currentSlide].querySelector('video');
@@ -2783,7 +2699,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     currentSlide = currentMediaIndex;
     if (slides[currentSlide]) {
       slides[currentSlide].classList.add("active");
-      
       applyAnimationToSlide(slides[currentSlide]);
       
       const video = slides[currentSlide].querySelector('video');
@@ -3143,9 +3058,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         slideMode, fixedAnimation, animationDuration,
         hfsIp: hfsIpInput.value,
         hfsPort: hfsPortInput.value,
-        appsScriptUrl: appsScriptUrlInput.value,
-        googleDriveFolderId: googleDriveFolderId.value,
-        autoUpdateEnabled,
         runningText: document.getElementById('runningTextInput')?.value,
         logoLeft: logoLeftData,
         logoRight: logoRightData
@@ -3190,12 +3102,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       if (data.animationDuration !== undefined) animationDuration = data.animationDuration;
       if (data.hfsIp) hfsIpInput.value = data.hfsIp;
       if (data.hfsPort) hfsPortInput.value = data.hfsPort;
-      if (data.appsScriptUrl) appsScriptUrlInput.value = data.appsScriptUrl;
-      if (data.googleDriveFolderId) googleDriveFolderId.value = data.googleDriveFolderId;
-      if (data.autoUpdateEnabled !== undefined) {
-        autoUpdateEnabled = data.autoUpdateEnabled;
-        if (autoUpdateToggle) autoUpdateToggle.classList.toggle('active', autoUpdateEnabled);
-      }
       
       if (data.runningText !== undefined) {
         document.getElementById('runningTextInput').value = data.runningText;
@@ -3257,7 +3163,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     }
   } catch (e) {}
 
-  // INIT
+  // ===== INIT =====
   updateBackgroundEffect();
   
   const inp = document.getElementById('runningTextInput');
@@ -3277,13 +3183,12 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   if (slideMode === 'fixed') fixedAnimationContainer.style.display = 'block';
   else fixedAnimationContainer.style.display = 'none';
   
+  // Auto load Google Drive
   setTimeout(() => {
-    if (slides.length > 0 && slides[currentSlide]) {
-      applyAnimationToSlide(slides[currentSlide]);
-    }
-  }, 500);
+    loadFromGoogleDrive(false);
+  }, 1000);
   
-  console.log('✅ PWA Ready dengan 50+ Animasi PowerPoint 2007 + Auto Update Google Drive');
+  console.log('✅ Aplikasi siap dengan Google Drive (auto-load)');
 })();
 </script>
 
