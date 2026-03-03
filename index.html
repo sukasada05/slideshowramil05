@@ -1330,7 +1330,7 @@ html:fullscreen {
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* Folder ID Input */
+/* Folder ID Input di Settings */
 .folder-id-input {
   width: 100%;
   padding: 12px;
@@ -1345,6 +1345,12 @@ html:fullscreen {
 .folder-id-input:focus {
   border-color: var(--gold);
   outline: none;
+}
+
+/* Tombol Google Drive di Settings */
+.google-drive-btn {
+  width: 100%;
+  margin-top: 5px;
 }
 </style>
 </head>
@@ -1440,12 +1446,20 @@ html:fullscreen {
     <span data-icon="folder"></span> <span id="folderInfoText">KLIK SELECT FOLDER</span>
   </div>
   
-  <!-- SETTINGS PANEL -->
+  <!-- SETTINGS PANEL (DENGAN TAMBAHAN GOOGLE DRIVE) -->
   <div class="settings-panel hide" id="settingsPanel">
     <h3><span data-icon="settings"></span> PENGATURAN OFFLINE</h3>
     
+    <!-- ===== GOOGLE DRIVE SECTION (BARU) ===== -->
     <div class="settings-section">
-      <h4>📁 GOOGLE DRIVE (HEMAT KUOTA)</h4>
+      <h4>📁 GOOGLE DRIVE (TANPA API KEY)</h4>
+      <div class="setting-item">
+        <span class="setting-label">URL Apps Script</span>
+        <input type="text" class="folder-id-input" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <small style="color: var(--gold-light); display: block; margin-top: 5px;">
+          URL dari hasil deploy Google Apps Script
+        </small>
+      </div>
       <div class="setting-item">
         <span class="setting-label">ID Folder Google Drive</span>
         <input type="text" class="folder-id-input" id="googleDriveFolderId" placeholder="Contoh: 1a2B3c4D5e6F7g8H9i0J">
@@ -1453,7 +1467,7 @@ html:fullscreen {
           Cara dapat ID: Buka folder di Google Drive, lihat URL (id setelah /folders/)
         </small>
       </div>
-      <button class="settings-btn-small" id="loadDriveBtn" style="width:100%;">📥 Load dari Google Drive</button>
+      <button class="settings-btn-small google-drive-btn" id="loadDriveBtn">📥 Load dari Google Drive</button>
     </div>
     
     <div class="settings-section">
@@ -1800,10 +1814,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     }
   }
   
-  // Coba fullscreen setelah halaman dimuat
   window.addEventListener('load', enterFullScreen);
-  
-  // Coba fullscreen juga saat user klik di mana saja (untuk mengatasi kebijakan browser)
   document.addEventListener('click', () => {
     if (!document.fullscreenElement) {
       enterFullScreen();
@@ -2000,7 +2011,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   let textGlow = true;
   let glowIntensity = 5;
 
-  let kenBurnsEnabled = false;
   let dateEnabled = true;
   let shuffleEnabled = false;
   let brightness = 100;
@@ -2075,6 +2085,9 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   const fontPreview = document.getElementById('fontPreview');
   const hfsIpInput = document.getElementById('hfsIpInput');
   const hfsPortInput = document.getElementById('hfsPortInput');
+  
+  // ===== ELEMEN GOOGLE DRIVE (BARU) =====
+  const appsScriptUrlInput = document.getElementById('appsScriptUrl');
   const googleDriveFolderId = document.getElementById('googleDriveFolderId');
   const loadDriveBtn = document.getElementById('loadDriveBtn');
   
@@ -2172,16 +2185,13 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     const img = slideElement.querySelector('.main');
     if (!img) return;
     
-    // Hapus semua class animasi yang ada
     allAnimations.forEach(animClass => {
       img.classList.remove(animClass);
     });
     
-    // Terapkan animasi baru
     const animClass = getNextAnimation();
     img.classList.add(animClass);
     
-    // Set durasi animasi
     img.style.animationDuration = animationDuration + 's';
     img.style.animationIterationCount = '1';
     img.style.animationFillMode = 'forwards';
@@ -2189,11 +2199,24 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     console.log('Animasi PowerPoint 2007 diterapkan:', animClass, 'durasi:', animationDuration + 's');
   }
 
-  // ===== FUNGSI LOAD DARI GOOGLE DRIVE =====
+  // ===== FUNGSI GOOGLE DRIVE (BARU - TANPA API KEY) =====
   async function loadFromGoogleDrive() {
+    const appsScriptUrl = appsScriptUrlInput.value.trim();
     const folderId = googleDriveFolderId.value.trim();
+    
+    if (!appsScriptUrl) {
+      alert('Masukkan URL Google Apps Script terlebih dahulu!');
+      return;
+    }
+    
     if (!folderId) {
       alert('Masukkan ID Folder Google Drive terlebih dahulu!');
+      return;
+    }
+
+    // Validasi URL
+    if (!appsScriptUrl.includes('script.google.com') || !appsScriptUrl.includes('/exec')) {
+      alert('URL Apps Script tidak valid. Harus dari script.google.com dan berakhiran /exec');
       return;
     }
 
@@ -2201,39 +2224,33 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     container.innerHTML = "";
     loadingIndicator.classList.add("show");
     folderInfo.classList.remove('hide');
-    folderInfoText.innerHTML = `📁 Mengakses Google Drive Folder ID: ${folderId}...`;
+    folderInfoText.innerHTML = `📁 Menghubungi Apps Script...`;
 
     try {
-      // API Key untuk Google Drive (ganti dengan API Key Anda)
-      const API_KEY = 'AIzaSyCzF4UwJkQmWxHhC9nUuLvVrRtTtYyYzZz'; // GANTI DENGAN API KEY ANDA
+      // Panggil Google Apps Script
+      const response = await fetch(`${appsScriptUrl}?folderId=${encodeURIComponent(folderId)}`);
       
-      // Mendapatkan daftar file dari folder Google Drive
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType,webContentLink)`
-      );
-
       if (!response.ok) {
-        throw new Error(`Gagal mengakses Google Drive (${response.status})`);
+        throw new Error(`Gagal mengakses Apps Script (${response.status})`);
       }
 
       const data = await response.json();
       
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       if (!data.files || data.files.length === 0) {
-        folderInfoText.innerHTML = '📁 Tidak ada file di folder ini';
+        folderInfoText.innerHTML = '📁 Tidak ada file gambar/video di folder ini';
         loadingIndicator.classList.remove("show");
         return;
       }
 
-      // Filter file gambar dan video
-      const mediaFiles = data.files.filter(file => 
-        file.mimeType.startsWith('image/') || file.mimeType.startsWith('video/')
-      );
-
-      folderInfoText.innerHTML = `📁 Google Drive: ${mediaFiles.length} file ditemukan`;
+      folderInfoText.innerHTML = `📁 Google Drive: ${data.files.length} file ditemukan`;
 
       // Load setiap file media
-      for (let i = 0; i < mediaFiles.length; i++) {
-        const file = mediaFiles[i];
+      for (let i = 0; i < data.files.length; i++) {
+        const file = data.files[i];
         const slide = document.createElement('div');
         slide.className = 'slide';
         
@@ -2247,14 +2264,15 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
             img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="%23333"/><text x="20" y="110" fill="%23C5A059">Error</text></svg>';
           };
           slide.appendChild(img);
-        } else {
-          // Untuk video, gunakan link download
+        } else if (file.mimeType.startsWith('video/')) {
           const video = document.createElement('video');
           video.className = 'main';
           video.src = `https://drive.google.com/uc?export=download&id=${file.id}`;
           video.controls = false;
           video.onerror = () => console.log('Gagal load video:', file.name);
           slide.appendChild(video);
+        } else {
+          continue; // Skip file yang bukan gambar/video
         }
         
         container.appendChild(slide);
@@ -2270,7 +2288,11 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         slides[0].classList.add('active');
         applyAnimationToSlide(slides[0]);
         startSlideshow();
-        folderInfoText.innerHTML = `📁 Google Drive: ${mediaFiles.length} file dimuat`;
+        folderInfoText.innerHTML = `📁 Google Drive: ${data.files.length} file dimuat`;
+        
+        // Putar video pertama jika ada
+        const firstVideo = slides[0].querySelector('video');
+        if (firstVideo) firstVideo.play();
       }
 
     } catch (error) {
@@ -2285,15 +2307,19 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         <p>${error.message}</p>
         <p style="margin-top: 20px;">Folder ID: ${folderId}</p>
         <p style="font-size:12px; color: var(--gold-light);">Pastikan:</p>
-        <p style="font-size:12px;">1. Folder ID benar</p>
-        <p style="font-size:12px;">2. Folder di-set "Public" atau "Anyone with link"</p>
-        <p style="font-size:12px;">3. API Key valid</p>
-        <button onclick="loadFromGoogleDrive()" class="settings-btn-small" style="margin-top:20px;">Coba Lagi</button>
+        <p style="font-size:12px;">1. URL Apps Script benar (berakhiran /exec)</p>
+        <p style="font-size:12px;">2. Folder ID benar</p>
+        <p style="font-size:12px;">3. Folder di-set "Anyone with link"</p>
+        <p style="font-size:12px;">4. Apps Script sudah di-deploy</p>
+        <button onclick="location.reload()" class="settings-btn-small" style="margin-top:20px;">Muat Ulang</button>
       `;
     }
   }
 
-  loadDriveBtn.addEventListener('click', loadFromGoogleDrive);
+  // Event listener untuk tombol Load Google Drive
+  if (loadDriveBtn) {
+    loadDriveBtn.addEventListener('click', loadFromGoogleDrive);
+  }
 
   // ===== FUNGSI HFS =====
   window.loadFromHFS = async function() {
@@ -2386,7 +2412,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     }
   };
 
-  document.getElementById('testHfsBtn').addEventListener('click', async () => {
+  document.getElementById('testHfsBtn')?.addEventListener('click', async () => {
     const hfsIp = hfsIpInput.value || '192.168.1.5';
     const hfsPort = hfsPortInput.value || '80';
     const hfsUrl = `http://${hfsIp}:${hfsPort}`;
@@ -2481,10 +2507,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     }
   }
 
-  logoLeftInput.addEventListener('change', () => handleLogoUpload(logoLeftInput, 'left'));
-  logoRightInput.addEventListener('change', () => handleLogoUpload(logoRightInput, 'right'));
-  clearLogoLeft.addEventListener('click', () => clearLogo('left'));
-  clearLogoRight.addEventListener('click', () => clearLogo('right'));
+  if (logoLeftInput) logoLeftInput.addEventListener('change', () => handleLogoUpload(logoLeftInput, 'left'));
+  if (logoRightInput) logoRightInput.addEventListener('change', () => handleLogoUpload(logoRightInput, 'right'));
+  if (clearLogoLeft) clearLogoLeft.addEventListener('click', () => clearLogo('left'));
+  if (clearLogoRight) clearLogoRight.addEventListener('click', () => clearLogo('right'));
 
   function updateLogoScale(scalePercent) {
     document.documentElement.style.setProperty('--logo-scale', scalePercent / 100);
@@ -2511,20 +2537,22 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
-      fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen-exit');
+      if (fullscreenBtn) fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen-exit');
     } else {
       document.exitFullscreen();
-      fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen');
+      if (fullscreenBtn) fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen');
     }
   }
   
-  fullscreenBtn.addEventListener('click', toggleFullscreen);
+  if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
   
   document.addEventListener('fullscreenchange', function() {
-    if (document.fullscreenElement) {
-      fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen-exit');
-    } else {
-      fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen');
+    if (fullscreenBtn) {
+      if (document.fullscreenElement) {
+        fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen-exit');
+      } else {
+        fullscreenBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'fullscreen');
+      }
     }
   });
 
@@ -2537,12 +2565,12 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       audioContainer.appendChild(audioPlayer);
       audioPlayer.volume = bgVolume/100;
       audioPlayer.addEventListener('play', () => {
-        audioBtnText.textContent = 'Pause';
-        audioToggleBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'volume-up');
+        if (audioBtnText) audioBtnText.textContent = 'Pause';
+        if (audioToggleBtn) audioToggleBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'volume-up');
       });
       audioPlayer.addEventListener('pause', () => {
-        audioBtnText.textContent = 'Play MP3';
-        audioToggleBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'music');
+        if (audioBtnText) audioBtnText.textContent = 'Play MP3';
+        if (audioToggleBtn) audioToggleBtn.querySelector('span[data-icon]').setAttribute('data-icon', 'music');
       });
       audioPlayer.addEventListener('ended', () => {
         if (audioFiles.length > 0) {
@@ -2557,7 +2585,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   function playAudioAtIndex(index) {
     if (!audioPlayer) audioPlayer = initAudioPlayer();
     if (audioFiles.length === 0) { 
-      audioBtnText.textContent = 'No MP3'; 
+      if (audioBtnText) audioBtnText.textContent = 'No MP3'; 
       return; 
     }
     const audioFile = audioFiles[index];
@@ -2649,13 +2677,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   window.nextSlide = function() {
     if (slides.length === 0) return;
     
-    // Pause semua video
     document.querySelectorAll('video').forEach(v => v.pause());
     
-    // Sembunyikan slide aktif
     if (slides[currentSlide]) slides[currentSlide].classList.remove("active");
     
-    // Hitung slide berikutnya
     if (shuffleEnabled) {
       do { 
         currentMediaIndex = Math.floor(Math.random() * slides.length); 
@@ -2675,16 +2700,13 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         video.volume = videoMuted ? 0 : (videoVolume / 100);
         video.play();
         
-        // Jika ada video, atur timeout berdasarkan durasi video
         if (video.duration && !isNaN(video.duration)) { 
           clearTimeout(slideTimeout); 
           slideTimeout = setTimeout(window.nextSlide, video.duration * 1000); 
         } else {
-          // Fallback jika durasi tidak tersedia
           startSlideshow();
         }
       } else {
-        // Untuk gambar, gunakan durasi default
         startSlideshow();
       }
     }
@@ -2693,13 +2715,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   window.prevSlide = function() {
     if (slides.length === 0) return;
     
-    // Pause semua video
     document.querySelectorAll('video').forEach(v => v.pause());
     
-    // Sembunyikan slide aktif
     if (slides[currentSlide]) slides[currentSlide].classList.remove("active");
     
-    // Hitung slide sebelumnya
     if (shuffleEnabled) {
       do { 
         currentMediaIndex = Math.floor(Math.random() * slides.length); 
@@ -2728,10 +2747,8 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     
     clearTimeout(slideTimeout);
     
-    // Tentukan durasi untuk slide saat ini
     let duration = durations[currentMediaIndex % durations.length];
     
-    // Jika slide saat ini adalah video, gunakan durasi video
     const video = slides[currentSlide]?.querySelector('video');
     if (video && video.duration && !isNaN(video.duration)) {
       duration = video.duration * 1000;
@@ -2742,7 +2759,7 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
 
   window.togglePlay = function() {
     autoPlay = !autoPlay;
-    playBtn.querySelector('span[data-icon]').setAttribute('data-icon', autoPlay ? 'pause' : 'play');
+    if (playBtn) playBtn.querySelector('span[data-icon]').setAttribute('data-icon', autoPlay ? 'pause' : 'play');
     if (autoPlay) { 
       startSlideshow(); 
       const video = slides[currentSlide]?.querySelector('video');
@@ -2767,7 +2784,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       
       const files = Array.from(e.target.files);
       
-      // Pisahkan file berdasarkan tipe
       for (const file of files) {
         if (isValidImageForSlideshow(file)) {
           imageFiles.push(file);
@@ -2780,38 +2796,33 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         }
       }
       
-      // Handle audio files
       if (audioFiles.length > 0) { 
-        audioBtnText.textContent = 'Play MP3'; 
+        if (audioBtnText) audioBtnText.textContent = 'Play MP3'; 
         initAudioPlayer();
-        audioPlaylist.innerHTML = audioFiles.map(f => `<div>🎵 ${f.name}</div>`).join('');
+        if (audioPlaylist) audioPlaylist.innerHTML = audioFiles.map(f => `<div>🎵 ${f.name}</div>`).join('');
       }
 
-      // Handle logo files - hanya ambil 2 logo pertama (kiri dan kanan)
       if (logoFiles.length > 0) {
-        // Logo kiri
         const readerLeft = new FileReader();
         readerLeft.onload = function(e) {
           logoLeftData = e.target.result;
           updateLogo('left', logoLeftData);
+          
+          if (logoFiles.length > 1) {
+            const readerRight = new FileReader();
+            readerRight.onload = function(ev) {
+              logoRightData = ev.target.result;
+              updateLogo('right', logoRightData);
+            };
+            readerRight.readAsDataURL(logoFiles[1]);
+          } else {
+            setTimeout(() => {
+              logoRightData = logoLeftData;
+              updateLogo('right', logoRightData);
+            }, 100);
+          }
         };
         readerLeft.readAsDataURL(logoFiles[0]);
-        
-        // Logo kanan (jika ada file ke-2)
-        if (logoFiles.length > 1) {
-          const readerRight = new FileReader();
-          readerRight.onload = function(ev) {
-            logoRightData = ev.target.result;
-            updateLogo('right', logoRightData);
-          };
-          readerRight.readAsDataURL(logoFiles[1]);
-        } else {
-          // Jika hanya 1 logo, gunakan logo yang sama untuk kanan
-          setTimeout(() => {
-            logoRightData = logoLeftData;
-            updateLogo('right', logoRightData);
-          }, 100);
-        }
       }
       
       const media = [...imageFiles, ...videoFiles];
@@ -2825,7 +2836,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       folderInfo.classList.remove("hide");
       folderInfoText.innerText = `${media.length} media (${imageFiles.length} gambar, ${videoFiles.length} video), ${audioFiles.length} MP3, ${logoFiles.length} logo`;
 
-      // Load semua media
       for (let i = 0; i < media.length; i++) {
         const file = media[i];
         const reader = new FileReader();
@@ -2859,7 +2869,6 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
               slides[0].classList.add("active"); 
               applyAnimationToSlide(slides[0]);
               
-              // Putar video pertama jika ada
               const firstVideo = slides[0].querySelector('video');
               if (firstVideo) firstVideo.play();
               
@@ -2875,13 +2884,15 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   }
 
   // ===== SETTINGS BINDINGS =====
-  settingsBtn?.addEventListener('click', (e) => { 
-    e.stopPropagation(); 
-    settingsPanel.classList.toggle('hide'); 
-    if (autoHideEnabled && !settingsPanel.classList.contains('hide')) {
-      clearTimeout(hideTimer);
-    }
-  });
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', (e) => { 
+      e.stopPropagation(); 
+      settingsPanel.classList.toggle('hide'); 
+      if (autoHideEnabled && !settingsPanel.classList.contains('hide')) {
+        clearTimeout(hideTimer);
+      }
+    });
+  }
   
   document.getElementById('closeSettings')?.addEventListener('click', () => { 
     settingsPanel.classList.add('hide'); 
@@ -2893,16 +2904,20 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   const bgIntensitySlider = document.getElementById('bgIntensitySlider');
   const bgIntensityValue = document.getElementById('bgIntensityValue');
   
-  bgEffectSelect.addEventListener('change', (e) => {
-    bgEffect = e.target.value;
-    updateBackgroundEffect();
-  });
+  if (bgEffectSelect) {
+    bgEffectSelect.addEventListener('change', (e) => {
+      bgEffect = e.target.value;
+      updateBackgroundEffect();
+    });
+  }
   
-  bgIntensitySlider.addEventListener('input', (e) => {
-    bgIntensity = parseInt(e.target.value);
-    bgIntensityValue.textContent = bgIntensity + '%';
-    updateBackgroundEffect();
-  });
+  if (bgIntensitySlider) {
+    bgIntensitySlider.addEventListener('input', (e) => {
+      bgIntensity = parseInt(e.target.value);
+      if (bgIntensityValue) bgIntensityValue.textContent = bgIntensity + '%';
+      updateBackgroundEffect();
+    });
+  }
 
   // Slide Animation Settings
   const slideModeSelect = document.getElementById('slideModeSelect');
@@ -2911,35 +2926,41 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   const animationDurationSlider = document.getElementById('animationDurationSlider');
   const animationDurationValue = document.getElementById('animationDurationValue');
   
-  slideModeSelect.addEventListener('change', (e) => {
-    slideMode = e.target.value;
-    if (slideMode === 'fixed') {
-      fixedAnimationContainer.style.display = 'block';
-    } else {
-      fixedAnimationContainer.style.display = 'none';
-      if (slideMode.startsWith('cycle')) {
-        cycleIndex = 0;
-        cycleAnimations = [];
+  if (slideModeSelect) {
+    slideModeSelect.addEventListener('change', (e) => {
+      slideMode = e.target.value;
+      if (slideMode === 'fixed') {
+        if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'block';
+      } else {
+        if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'none';
+        if (slideMode.startsWith('cycle')) {
+          cycleIndex = 0;
+          cycleAnimations = [];
+        }
       }
-    }
-    if (slides[currentSlide]) applyAnimationToSlide(slides[currentSlide]);
-  });
+      if (slides[currentSlide]) applyAnimationToSlide(slides[currentSlide]);
+    });
+  }
   
-  fixedAnimationSelect.addEventListener('change', (e) => {
-    fixedAnimation = e.target.value;
-    if (slideMode === 'fixed' && slides[currentSlide]) {
-      applyAnimationToSlide(slides[currentSlide]);
-    }
-  });
+  if (fixedAnimationSelect) {
+    fixedAnimationSelect.addEventListener('change', (e) => {
+      fixedAnimation = e.target.value;
+      if (slideMode === 'fixed' && slides[currentSlide]) {
+        applyAnimationToSlide(slides[currentSlide]);
+      }
+    });
+  }
   
-  animationDurationSlider.addEventListener('input', (e) => {
-    animationDuration = parseInt(e.target.value);
-    animationDurationValue.textContent = animationDuration + 's';
-    if (slides[currentSlide]) {
-      const img = slides[currentSlide].querySelector('.main');
-      if (img) img.style.animationDuration = animationDuration + 's';
-    }
-  });
+  if (animationDurationSlider) {
+    animationDurationSlider.addEventListener('input', (e) => {
+      animationDuration = parseInt(e.target.value);
+      if (animationDurationValue) animationDurationValue.textContent = animationDuration + 's';
+      if (slides[currentSlide]) {
+        const img = slides[currentSlide].querySelector('.main');
+        if (img) img.style.animationDuration = animationDuration + 's';
+      }
+    });
+  }
 
   document.getElementById('videoVolumeSlider')?.addEventListener('input', (e) => { 
     videoVolume = parseInt(e.target.value); 
@@ -2954,21 +2975,23 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   });
   
   const autoHideToggle = document.getElementById('autoHideToggle');
-  autoHideToggle.classList.remove('active');
-  autoHideToggle.addEventListener('click', function() {
-    autoHideEnabled = !autoHideEnabled;
-    this.classList.toggle('active', autoHideEnabled);
-    
-    if (autoHideEnabled) {
-      resetHideTimer();
-    } else {
-      clearTimeout(hideTimer);
-      slideTitle.classList.remove("hide");
-      folderInfo.classList.remove("hide");
-      bottomBar.classList.remove("hide");
-      datetime.classList.remove("datetime-hidden-pos");
-    }
-  });
+  if (autoHideToggle) {
+    autoHideToggle.classList.remove('active');
+    autoHideToggle.addEventListener('click', function() {
+      autoHideEnabled = !autoHideEnabled;
+      this.classList.toggle('active', autoHideEnabled);
+      
+      if (autoHideEnabled) {
+        resetHideTimer();
+      } else {
+        clearTimeout(hideTimer);
+        slideTitle.classList.remove("hide");
+        folderInfo.classList.remove("hide");
+        bottomBar.classList.remove("hide");
+        datetime.classList.remove("datetime-hidden-pos");
+      }
+    });
+  }
 
   document.getElementById('hideDelaySlider')?.addEventListener('input', (e) => { 
     hideDelay = parseInt(e.target.value); 
@@ -3003,11 +3026,13 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   const logoScaleSlider = document.getElementById('logoScaleSlider');
   const logoScaleValue = document.getElementById('logoScaleValue');
 
-  logoScaleSlider.addEventListener('input', (e) => {
-    logoScale = parseInt(e.target.value);
-    logoScaleValue.textContent = logoScale + '%';
-    updateLogoScale(logoScale);
-  });
+  if (logoScaleSlider) {
+    logoScaleSlider.addEventListener('input', (e) => {
+      logoScale = parseInt(e.target.value);
+      if (logoScaleValue) logoScaleValue.textContent = logoScale + '%';
+      updateLogoScale(logoScale);
+    });
+  }
 
   document.getElementById('runningTextToggle')?.addEventListener('click', function() { 
     runningTextEnabled = !runningTextEnabled; 
@@ -3079,9 +3104,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
         fontFamily, dateEnabled, shuffleEnabled, brightness, autoPlay, bgVolume,
         logoScale, bgEffect, bgIntensity, 
         slideMode, fixedAnimation, animationDuration,
-        hfsIp: hfsIpInput.value,
-        hfsPort: hfsPortInput.value,
-        googleDriveFolderId: googleDriveFolderId.value,
+        hfsIp: hfsIpInput?.value,
+        hfsPort: hfsPortInput?.value,
+        appsScriptUrl: appsScriptUrlInput?.value,
+        googleDriveFolderId: googleDriveFolderId?.value,
         runningText: document.getElementById('runningTextInput')?.value,
         logoLeft: logoLeftData,
         logoRight: logoRightData
@@ -3124,9 +3150,10 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       if (data.slideMode !== undefined) slideMode = data.slideMode;
       if (data.fixedAnimation !== undefined) fixedAnimation = data.fixedAnimation;
       if (data.animationDuration !== undefined) animationDuration = data.animationDuration;
-      if (data.hfsIp) hfsIpInput.value = data.hfsIp;
-      if (data.hfsPort) hfsPortInput.value = data.hfsPort;
-      if (data.googleDriveFolderId) googleDriveFolderId.value = data.googleDriveFolderId;
+      if (data.hfsIp && hfsIpInput) hfsIpInput.value = data.hfsIp;
+      if (data.hfsPort && hfsPortInput) hfsPortInput.value = data.hfsPort;
+      if (data.appsScriptUrl && appsScriptUrlInput) appsScriptUrlInput.value = data.appsScriptUrl;
+      if (data.googleDriveFolderId && googleDriveFolderId) googleDriveFolderId.value = data.googleDriveFolderId;
       
       if (data.runningText !== undefined) {
         document.getElementById('runningTextInput').value = data.runningText;
@@ -3142,8 +3169,8 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       }
       
       document.getElementById('videoVolumeValue').textContent = videoVolume + '%';
-      document.getElementById('videoMuteToggle').classList.toggle('active', videoMuted);
-      document.getElementById('autoHideToggle').classList.toggle('active', autoHideEnabled);
+      document.getElementById('videoMuteToggle')?.classList.toggle('active', videoMuted);
+      document.getElementById('autoHideToggle')?.classList.toggle('active', autoHideEnabled);
       document.getElementById('hideDelayValue').textContent = hideDelay + 's';
       document.getElementById('hideDelaySlider').value = hideDelay;
       document.getElementById('speedValue').textContent = textSpeed + 's';
@@ -3167,16 +3194,19 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
       document.getElementById('animationDurationValue').textContent = animationDuration + 's';
       document.getElementById('animationDurationSlider').value = animationDuration;
       
-      if (slideMode === 'fixed') fixedAnimationContainer.style.display = 'block';
-      else fixedAnimationContainer.style.display = 'none';
+      if (slideMode === 'fixed') {
+        if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'block';
+      } else {
+        if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'none';
+      }
       
-      document.getElementById('dateToggle').classList.toggle('active', dateEnabled);
+      document.getElementById('dateToggle')?.classList.toggle('active', dateEnabled);
       datetime.classList.toggle('hide', !dateEnabled);
       
-      document.getElementById('shuffleToggle').classList.toggle('active', shuffleEnabled);
+      document.getElementById('shuffleToggle')?.classList.toggle('active', shuffleEnabled);
       
-      logoScaleValue.textContent = logoScale + '%';
-      logoScaleSlider.value = logoScale;
+      if (logoScaleValue) logoScaleValue.textContent = logoScale + '%';
+      if (logoScaleSlider) logoScaleSlider.value = logoScale;
       updateLogoScale(logoScale);
       
       updateRunningTextStyle();
@@ -3205,8 +3235,11 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
   
   updateLogoScale(logoScale);
   
-  if (slideMode === 'fixed') fixedAnimationContainer.style.display = 'block';
-  else fixedAnimationContainer.style.display = 'none';
+  if (slideMode === 'fixed') {
+    if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'block';
+  } else {
+    if (fixedAnimationContainer) fixedAnimationContainer.style.display = 'none';
+  }
   
   setTimeout(() => {
     if (slides.length > 0 && slides[currentSlide]) {
@@ -3214,7 +3247,11 @@ Sinergi TNI dan Masyarakat Mewujudkan Wilayah Aman dan Kondusif
     }
   }, 500);
   
-  console.log('✅ PWA Ready dengan 50+ Animasi PowerPoint 2007');
+  console.log('✅ PWA Ready dengan 50+ Animasi PowerPoint 2007 + Google Drive');
+  console.log('📝 Untuk menggunakan Google Drive:');
+  console.log('1. Buat Google Apps Script');
+  console.log('2. Deploy sebagai Web App');
+  console.log('3. Masukkan URL dan Folder ID di Settings');
 })();
 </script>
 
