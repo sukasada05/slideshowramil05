@@ -1,7 +1,7 @@
 {
   "name": "Koramil 1609-05/Sukasada",
   "short_name": "Koramil",
-  "description": "Aplikasi Slideshow untuk Koramil 1609-05/Sukasada",
+  "description": "Aplikasi Slideshow untuk Koramil 1609-05/Sukasada dengan Auto Update Google Drive",
   "start_url": "index.html",
   "display": "fullscreen",
   "background_color": "#000000",
