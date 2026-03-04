@@ -76,8 +76,8 @@ html:fullscreen {
 [data-icon="volume-up"]:before { content: "🔊"; }
 [data-icon="volume-mute"]:before { content: "🔇"; }
 [data-icon="spinner"]:before { content: "🔄"; animation: spin 1s infinite linear; display: inline-block; }
-[data-icon="fullscreen"]:before { content: "🖥️"; }
-[data-icon="fullscreen-exit"]:before { content: "🖵"; }
+[data-icon="fullscreen"]:before { content: "🖵"; }
+[data-icon="fullscreen-exit"]:before { content: "🖥️"; }
 [data-icon="hfs"]:before { content: "🌐"; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -1356,7 +1356,7 @@ html:fullscreen {
 
   <!-- PWA Install Button -->
   <button class="install-btn hide" id="installBtn" title="Install App">
-    <span data-icon="download">📲</span>
+    <span data-icon="download">📲Install</span>
   </button>
 
   <!-- Online/Offline Indicator -->
@@ -1449,6 +1449,7 @@ html:fullscreen {
       <div class="setting-item">
         <span class="setting-label">ID Folder Google Drive</span>
         <input type="text" class="folder-id-input" id="googleDriveFolderId" value="1I5wVeLcrSS2sjlaRLCftwd9JPfbNri0l" placeholder="ID Folder">
+        <input type="text" class="folder-id-input" id="googleDriveFolderId" value="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" placeholder="ID Folder">
         <small style="color: var(--gold-light); display: block; margin-top: 5px;">
           ID folder sudah diisi otomatis
         </small>
