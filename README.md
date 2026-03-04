@@ -138,7 +138,11 @@ const CONFIG = {
 ## 📱 **MEMBUAT APK ANDROID TV**
 
 ### **Langkah-langkah:**
-1. Kumpulkan semua file aplikasi dalam 1 folder
+1. Kumpulkan semua file aplikasi dalam 1 folder:
+   - index.html
+   - manifest.json
+   - sw.js
+   - icon-192.png
 2. Seleksi semua file → Klik kanan → Send to → Compressed folder
 3. Hasil: slideshow.zip
 4. Buka https://www.web2apk.com
@@ -180,8 +184,10 @@ project/
 
 ## 📝 **LISENSI**
 
-© 2026 Koramil 1609-05/Sukasada
-Dibuat oleh: Serka I Nyoman Arta
+© 2026 Koramil 1609-05/Sukasada  
+Dibuat oleh: Serka I Nyoman Arta  
+Unit: Koramil 1609-05/Sukasada  
+Lokasi: Buleleng, Bali
 
 Aplikasi ini gratis untuk digunakan.
 
@@ -199,6 +205,6 @@ Aplikasi ini gratis untuk digunakan.
 
 ## 🙏 **TERIMA KASIH**
 
-Terima kasih telah menggunakan aplikasi ini. Semoga bermanfaat!
+Terima kasih telah menggunakan aplikasi ini. Semoga bermanfaat untuk kegiatan presentasi, sosialisasi, atau acara Anda.
 
 **Selamat mencoba!** 🎉
